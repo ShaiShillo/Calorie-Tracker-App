@@ -48,7 +48,9 @@ function CalorieReport({ getReportData, reportData }) {
       <form onSubmit={handleSubmit}>
         <FormControl fullWidth>
           <InputLabel>Month</InputLabel>
-          <Select value={month} label='Month' onChange={handleMonthChange} required>
+          <Select value={month} labelId='month-select-label'
+            id='month-select'
+            name='month' label='Month' onChange={handleMonthChange} required>
             <MenuItem value={1}>January</MenuItem>
             <MenuItem value={2}>February</MenuItem>
             <MenuItem value={3}>March</MenuItem>
@@ -65,7 +67,7 @@ function CalorieReport({ getReportData, reportData }) {
         </FormControl>
         <FormControl fullWidth>
           <InputLabel>Year</InputLabel>
-          <Select value={year} label='Year' onChange={handleYearChange} required>
+          <Select value={year} name='year' labelId='year-select-label' id='year-select' label='Year' onChange={handleYearChange} required>
             <MenuItem value={2023}>2023</MenuItem>
             <MenuItem value={2024}>2024</MenuItem>
           </Select>

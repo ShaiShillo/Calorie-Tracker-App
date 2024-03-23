@@ -67,7 +67,10 @@ function CalorieForm({ onSubmit }) {
             <FormControl fullWidth>
                 <InputLabel>Category</InputLabel>
                 <Select
+                    labelId='category-select-label'
                     value={category}
+                    id='category-select'
+                    name='category'
                     label='Category'
                     onChange={(e) => setCategory(e.target.value)}
                     required
