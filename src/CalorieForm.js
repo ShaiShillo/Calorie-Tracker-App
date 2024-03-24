@@ -1,6 +1,7 @@
 //Shai Shillo ID: 204684914, Roman Agbyev ID: 322002098, Ofek Daida ID 315143958
 import React, { useState } from 'react';
 import { TextField, MenuItem, Button, FormControl, InputLabel, Select } from '@mui/material';
+import CustomException from "./custom_exceptions";
 
 function CalorieForm({ onSubmit }) {
     // State hooks for managing form inputs and description error state
@@ -10,7 +11,7 @@ function CalorieForm({ onSubmit }) {
     const [descriptionError, setDescriptionError] = useState(false);
     const [calorieError, setCalorieError] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         // Reset any previous error state
         setDescriptionError(false);
@@ -22,12 +23,22 @@ function CalorieForm({ onSubmit }) {
             setDescriptionError(true);
             return; // Prevent form submission
         }
-        onSubmit({ calorie, category, description: description.trim() });
+        try {
+            await onSubmit({calorie, category, description: description.trim()});
 
-        // Clear the form fields after successful submission
-        setCalorie(``);
-        setCategory(``);
-        setDescription(``);
+            // Clear the form fields after successful submission
+            setCalorie(``);
+            setCategory(``);
+            setDescription(``);
+        } catch (error){
+            if (error instanceof CustomException){
+                console.error('Custom Exception caught:', error.message, error.details);
+                //Handle the custom exception here as required
+            } else {
+                //Handle other types of exceptions if needed
+                console.error('Unhandled exception:', error);
+            }
+        }
     };
     const handleCalorieChange = (e) => {
         const value = e.target.value;
@@ -58,7 +69,7 @@ function CalorieForm({ onSubmit }) {
                 helperText={calorieError ? '' : ''}
                 label='Calories'
                 type='number'
-                inputProps={{ min: '0.01', step: '0.01' }} // Set a minimum value and step increment 
+                inputProps={{ min: '0.01', step: '0.01' }} // Set a minimum value and step increment
                 variant='outlined'
                 value={calorie}
                 onChange={handleCalorieChange}

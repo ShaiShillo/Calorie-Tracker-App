@@ -1,37 +1,47 @@
 //Shai Shillo ID: 204684914, Roman Agbyev ID: 322002098, Ofek Daida ID 315143958
 let idb = {};
-idb.openCaloriesDB = openCaloriesDB;
 window.idb = idb;
+
+//Class definition for the dbinstance we return and work with through our app
+//Objects from this class store a db, and the prototype holds the addCalories and getReport methods
+class DbInstance{
+    constructor() {
+        this.db = null;
+    }
+}
+
 //DB initialization function
-async function openCaloriesDB(dbName, dbVersion) {
+idb.openCaloriesDB = async function openCaloriesDB(dbName, dbVersion) {
     return new Promise((resolve, reject) => {
+        //Create a DbInstance object that will store the db upon success
+        let dbInstance = new DbInstance();
+
         //Try to open the DB
         const request = window.indexedDB.open(dbName, dbVersion);
-        let db;
 
         //Failed to open the DB, reject with an error
         request.onerror = function(event) {
             reject(`Error opening database`);
         };
 
-        //Succeeded to open the DB, assign it into the global var, assign the methods to this var and resolve with it
+        //Succeeded to open the DB, store it into DbInstance object db property and send the object through resolve
         request.onsuccess = function(event) {
-            db = event.target.result;
-            IDBDatabase.prototype.addCalories = addCalories.bind(db);
-            IDBDatabase.prototype.getReport = getReport.bind(db);
-            resolve(db);
+            dbInstance.db = event.target.result;
+            resolve(dbInstance);
         };
 
         //Update the DB
         request.onupgradeneeded = function(event) {
-            db = event.target.result;
+            const db = event.target.result;
             db.createObjectStore(`caloriesdb`, { keyPath: `id`, autoIncrement: true });
+            dbInstance.db = db;
         };
     });
 }
 
 //Add calories item function
-async function addCalories(caloriesItem) {
+//Assigned to the DbInstance prototype to allow wanted invoke
+DbInstance.prototype.addCalories = async function(caloriesItem) {
     return new Promise((resolve, reject) => {
         //Get the current date to use for report generation, split and store the relevant values as numbers
         const currentDate = new Date()
@@ -45,7 +55,7 @@ async function addCalories(caloriesItem) {
         caloriesItem.year = currentYear;
 
         //Try writing
-        const transaction = this.transaction([`caloriesdb`], `readwrite`);
+        const transaction = this.db.transaction([`caloriesdb`], `readwrite`);
         const store = transaction.objectStore(`caloriesdb`);
         const request = store.add(caloriesItem);
 
@@ -61,14 +71,15 @@ async function addCalories(caloriesItem) {
     });
 }
 
-//Get report function, returns the report as an array with the relevant items
-async function getReport(month, year) {
+//Get report function, returns the report as an array with the relevant items,
+//Assigned to the DbInstance prototype to allow wanted invoke
+DbInstance.prototype.getReport = async function(month, year) {
     return new Promise((resolve, reject) => {
         //Try to get all the items stored in our DB
-        const transaction = this.transaction([`caloriesdb`], `readonly`);
+        const transaction = this.db.transaction([`caloriesdb`], `readonly`);
         const store = transaction.objectStore(`caloriesdb`);
         const request = store.getAll();
-        
+
 
         //Failed, reject with an error
         request.onerror = function(event) {
@@ -81,7 +92,7 @@ async function getReport(month, year) {
             const allCalories = event.target.result;
             const relevantCalories = allCalories.filter((item) =>
                 item.month === month && item.year === year);
-        
+
             resolve(relevantCalories);
         };
     });
